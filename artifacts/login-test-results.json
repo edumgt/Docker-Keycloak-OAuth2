@@ -1,0 +1,24 @@
+{
+  "tested_at": "2026-03-01T07:45:27.351768+00:00",
+  "overall_passed": true,
+  "results": [
+    {
+      "username": "demo-user",
+      "token_status": 200,
+      "userinfo_status": 200,
+      "passed": true
+    },
+    {
+      "username": "demo-user2",
+      "token_status": 200,
+      "userinfo_status": 200,
+      "passed": true
+    },
+    {
+      "username": "demo-user3",
+      "token_status": 200,
+      "userinfo_status": 200,
+      "passed": true
+    }
+  ]
+}

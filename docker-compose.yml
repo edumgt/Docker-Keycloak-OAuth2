@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dko-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: dko-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin1234
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_PORT: 5432
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/keycloak/realm:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  capture:
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    container_name: dko-capture
+    profiles: ["tools"]
+    working_dir: /work
+    entrypoint: ["/bin/bash", "-lc"]
+    volumes:
+      - ./:/work
+    depends_on:
+      backend:
+        condition: service_started
+      keycloak:
+        condition: service_started
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: dko-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://app_user:app_pass@postgres:5432/app_db
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: integrated-id
+      KEYCLOAK_CLIENT_ID: be-client
+      KEYCLOAK_CLIENT_SECRET: be-client-secret
+      KEYCLOAK_REDIRECT_URI: http://localhost:8000/docs
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+volumes:
+  postgres_data:

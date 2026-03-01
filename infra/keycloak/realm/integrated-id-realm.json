@@ -1,0 +1,86 @@
+{
+  "realm": "integrated-id",
+  "enabled": true,
+  "displayName": "Unified Auth Realm",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "member"
+      },
+      {
+        "name": "medical-user"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "be-client",
+      "name": "Backend API Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "be-client-secret",
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://127.0.0.1:8000/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "demo-user",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "User",
+      "email": "demo-user@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo1234",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "demo-user2",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "User2",
+      "email": "demo-user2@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo2234",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "demo-user3",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "User3",
+      "email": "demo-user3@example.com",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo3234",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
