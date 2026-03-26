@@ -1,3 +1,25 @@
+x-airflow-common:
+  &airflow-common
+  image: apache/airflow:2.9.3
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: "ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg="
+    AIRFLOW__WEBSERVER__SECRET_KEY: "airflow-dev-secret-key-change-in-prod"
+    AIRFLOW__WEBSERVER__BASE_URL: "http://localhost:8888"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    KEYCLOAK_BASE_URL: http://keycloak:8080
+    KEYCLOAK_REALM: integrated-id
+    BACKEND_BASE_URL: http://backend:8000
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags:ro
+    - airflow_logs:/opt/airflow/logs
+  depends_on:
+    postgres:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -74,5 +96,55 @@ services:
       keycloak:
         condition: service_started
 
+  airflow-init:
+    <<: *airflow-common
+    container_name: dko-airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db upgrade &&
+        echo "Airflow DB initialised."
+    restart: on-failure
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: dko-airflow-webserver
+    command: webserver
+    ports:
+      - "8888:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:ro
+      - ./airflow/webserver_config.py:/opt/airflow/webserver_config.py:ro
+      - airflow_logs:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: dko-airflow-scheduler
+    command: scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname \"$${HOSTNAME}\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 volumes:
   postgres_data:
+  airflow_logs:
