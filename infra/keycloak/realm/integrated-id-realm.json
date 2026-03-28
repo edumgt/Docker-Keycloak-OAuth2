@@ -34,6 +34,24 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": true
+    },
+    {
+      "clientId": "airflow-client",
+      "name": "Airflow Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "airflow-client-secret",
+      "redirectUris": [
+        "http://localhost:8888/*",
+        "http://127.0.0.1:8888/*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false
     }
   ],
   "users": [
