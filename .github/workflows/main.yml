@@ -31,10 +31,10 @@ jobs:
           cache-dependency-path: backend/requirements.txt
 
       - name: Install backend dependencies
-        run: pip install --no-cache-dir -r backend/requirements.txt
+        run: pip install -r backend/requirements.txt
 
       - name: Install ruff
-        run: pip install --no-cache-dir ruff
+        run: pip install ruff
 
       - name: Lint backend
         run: ruff check backend/app
