@@ -19,7 +19,6 @@ DAG 03 – 회원 라이프사이클 관리 (Member Lifecycle)
 """
 
 import os
-import uuid
 from datetime import datetime, timedelta
 
 import requests
